@@ -10,7 +10,7 @@ COPY entrypoint.sh /opt/entrypoint.sh
 COPY confs/ /opt/confs
 COPY snuffleupagus.sh /opt/snuffleupagus.sh
 
-VOLUME /www /php-fpm.d /php.d
+VOLUME /www /php-fpm.d /php.d /entrypoint.d
 
 EXPOSE 9000/tcp
 
