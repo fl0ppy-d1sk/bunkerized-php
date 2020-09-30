@@ -1,2 +1,2 @@
 # bunkerized-php
-php Docker image secure by default. 
+php-fpm Docker image secure by default. 
