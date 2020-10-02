@@ -12,7 +12,7 @@ function trap_exit() {
 	echo "[*] Stopping crond ..."
 	pkill -TERM crond
 	echo "[*] Stopping php ..."
-	pkill -TERM php-fpm7
+	pkill -TERM php-fpm
 	echo "[*] Stopping syslogd ..."
 	pkill -TERM syslogd
 	pkill -TERM tail
@@ -27,11 +27,15 @@ function replace_in_file() {
 	sed -i "s/$pattern/$replace/g" "$1"
 }
 
+# file paths
+PHP_INI_CONF="/usr/local/etc/php/php.ini"
+PHP_INI_DIR="/usr/local/etc/php/conf.d"
+
 # copy stub confs
-cp /opt/confs/php.ini /etc/php7/php.ini
+cp /opt/confs/php.ini "$PHP_INI_CONF"
 cp /opt/confs/syslog.conf /etc/syslog.conf
 cp /opt/confs/logrotate.conf /etc/logrotate.conf
-cp /opt/confs/snuffleupagus.rules /etc/php7/conf.d/snuffleupagus.rules
+cp /opt/confs/snuffleupagus.rules "${PHP_INI_DIR}/snuffleupagus.rules"
 
 # remove cron jobs
 echo "" > /etc/crontabs/root
@@ -54,53 +58,64 @@ PHP_SESSION_COOKIE_PATH="${PHP_SESSION_COOKIE_PATH-/}"
 PHP_SESSION_COOKIE_HTTPONLY="${PHP_SESSION_COOKIE_HTTPONLY-1}"
 PHP_SESSION_COOKIE_SAMESITE="${PHP_SESSION_COOKIE_SAMESITE-Strict}"
 PHP_SESSION_NAME="${PHP_SESSION_NAME-random}"
-# session.cookie_domain = %PHP_SESSION_COOKIE_DOMAIN%
+PHP_MEMORY_LIMIT="${PHP_MEMORY_LIMIT-128M}"
 USE_SNUFFLEUPAGUS="{USE_SNUFFLEUPAGUS-yes}"
 LOGROTATE_MINSIZE="${LOGROTATE_MINSIZE-10M}"
 LOGROTATE_MAXAGE="${LOGROTATE_MAXAGE-7}"
 
-# install additional modules if needed
-if [ "$ADDITIONAL_MODULES" != "" ] ; then
-	apk add $ADDITIONAL_MODULES
+# install additional packages if needed
+if [ "$APK_ADD" != "" ] ; then
+	apk add $APK_ADD
+fi
+
+# install some PECL packages if needed
+if [ "$PECL_INSTALL" != "" ] ; then
+	pecl install $PECL_INSTALL
+fi
+
+# enable some extensions if needed
+if [ "$PHP_EXT_ENABLE" ] ; then
+	docker-php-ext-enable $PHP_EXT_ENABLE
 fi
 
 # replace values
-replace_in_file "/etc/php7/php.ini" "%PHP_EXPOSE%" "$PHP_EXPOSE"
-replace_in_file "/etc/php7/php.ini" "%PHP_DISPLAY_ERRORS%" "$PHP_DISPLAY_ERRORS"
-replace_in_file "/etc/php7/php.ini" "%PHP_OPEN_BASEDIR%" "$PHP_OPEN_BASEDIR"
-replace_in_file "/etc/php7/php.ini" "%PHP_ALLOW_URL_FOPEN%" "$PHP_ALLOW_URL_FOPEN"
-replace_in_file "/etc/php7/php.ini" "%PHP_ALLOW_URL_INCLUDE%" "$PHP_ALLOW_URL_INCLUDE"
-replace_in_file "/etc/php7/php.ini" "%PHP_FILE_UPLOADS%" "$PHP_FILE_UPLOADS"
-replace_in_file "/etc/php7/php.ini" "%PHP_UPLOAD_MAX_FILESIZE%" "$PHP_UPLOAD_MAX_FILESIZE"
-replace_in_file "/etc/php7/php.ini" "%PHP_UPLOAD_TMP_DIR%" "$PHP_UPLOAD_TMP_DIR"
-replace_in_file "/etc/php7/php.ini" "%PHP_DISABLE_FUNCTIONS%" "$PHP_DISABLE_FUNCTIONS"
-replace_in_file "/etc/php7/php.ini" "%PHP_POST_MAX_SIZE%" "$PHP_POST_MAX_SIZE"
-replace_in_file "/etc/php7/php.ini" "%PHP_DOC_ROOT%" "$PHP_DOC_ROOT"
-replace_in_file "/etc/php7/php.ini" "%PHP_SESSION_SAVE_PATH%" "$PHP_SESSION_SAVE_PATH"
-replace_in_file "/etc/php7/php.ini" "%PHP_SESSION_COOKIE_SECURE%" "$PHP_SESSION_COOKIE_SECURE"
-replace_in_file "/etc/php7/php.ini" "%PHP_SESSION_COOKIE_PATH%" "$PHP_SESSION_COOKIE_PATH"
-replace_in_file "/etc/php7/php.ini" "%PHP_SESSION_COOKIE_HTTPONLY%" "$PHP_SESSION_COOKIE_HTTPONLY"
-replace_in_file "/etc/php7/php.ini" "%PHP_SESSION_COOKIE_SAMESITE%" "$PHP_SESSION_COOKIE_SAMESITE"
-replace_in_file "/etc/php7/php.ini" "%PHP_SESSION_COOKIE_DOMAIN%" "$PHP_SESSION_COOKIE_DOMAIN"
+replace_in_file "$PHP_INI_CONF" "%PHP_EXPOSE%" "$PHP_EXPOSE"
+replace_in_file "$PHP_INI_CONF" "%PHP_DISPLAY_ERRORS%" "$PHP_DISPLAY_ERRORS"
+replace_in_file "$PHP_INI_CONF" "%PHP_OPEN_BASEDIR%" "$PHP_OPEN_BASEDIR"
+replace_in_file "$PHP_INI_CONF" "%PHP_ALLOW_URL_FOPEN%" "$PHP_ALLOW_URL_FOPEN"
+replace_in_file "$PHP_INI_CONF" "%PHP_ALLOW_URL_INCLUDE%" "$PHP_ALLOW_URL_INCLUDE"
+replace_in_file "$PHP_INI_CONF" "%PHP_FILE_UPLOADS%" "$PHP_FILE_UPLOADS"
+replace_in_file "$PHP_INI_CONF" "%PHP_UPLOAD_MAX_FILESIZE%" "$PHP_UPLOAD_MAX_FILESIZE"
+replace_in_file "$PHP_INI_CONF" "%PHP_UPLOAD_TMP_DIR%" "$PHP_UPLOAD_TMP_DIR"
+replace_in_file "$PHP_INI_CONF" "%PHP_DISABLE_FUNCTIONS%" "$PHP_DISABLE_FUNCTIONS"
+replace_in_file "$PHP_INI_CONF" "%PHP_POST_MAX_SIZE%" "$PHP_POST_MAX_SIZE"
+replace_in_file "$PHP_INI_CONF" "%PHP_DOC_ROOT%" "$PHP_DOC_ROOT"
+replace_in_file "$PHP_INI_CONF" "%PHP_SESSION_SAVE_PATH%" "$PHP_SESSION_SAVE_PATH"
+replace_in_file "$PHP_INI_CONF" "%PHP_SESSION_COOKIE_SECURE%" "$PHP_SESSION_COOKIE_SECURE"
+replace_in_file "$PHP_INI_CONF" "%PHP_SESSION_COOKIE_PATH%" "$PHP_SESSION_COOKIE_PATH"
+replace_in_file "$PHP_INI_CONF" "%PHP_SESSION_COOKIE_HTTPONLY%" "$PHP_SESSION_COOKIE_HTTPONLY"
+replace_in_file "$PHP_INI_CONF" "%PHP_SESSION_COOKIE_SAMESITE%" "$PHP_SESSION_COOKIE_SAMESITE"
+replace_in_file "$PHP_INI_CONF" "%PHP_SESSION_COOKIE_DOMAIN%" "$PHP_SESSION_COOKIE_DOMAIN"
 if [ "$PHP_SESSION_NAME" = "random" ] ; then
 	rand_nb=$((10 + RANDOM % 11))
 	rand_name=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w $rand_nb | head -n 1)
-	replace_in_file "/etc/php7/php.ini" "%PHP_SESSION_NAME%" "$rand_name"
+	replace_in_file "$PHP_INI_CONF" "%PHP_SESSION_NAME%" "$rand_name"
 else
-	replace_in_file "/etc/php7/php.ini" "%PHP_SESSION_NAME%" "$PHP_SESSION_NAME"
+	replace_in_file "$PHP_INI_CONF" "%PHP_SESSION_NAME%" "$PHP_SESSION_NAME"
 fi
+replace_in_file "$PHP_INI_CONF" "%PHP_MEMORY_LIMIT%" "$PHP_MEMORY_LIMIT"
 
 # snuffleupagus setup
 if [ "$USE_SNUFFLEUPAGUS" = "yes" ] ; then
-	replace_in_file "/etc/php7/php.ini" "%SNUFFLEUPAGUS_EXTENSION%" "extension=snuffleupagus.so"
+	replace_in_file "$PHP_INI_CONF" "%SNUFFLEUPAGUS_EXTENSION%" "extension=snuffleupagus.so"
 	if [ -f "/snuffleupagus.rules" ] ; then
-		replace_in_file "/etc/php7/php.ini" "%SNUFFLEUPAGUS_CONFIG%" "sp.configuration_file=/snuffleupagus.rules"
+		replace_in_file "$PHP_INI_CONF" "%SNUFFLEUPAGUS_CONFIG%" "sp.configuration_file=/snuffleupagus.rules"
 	else
-		replace_in_file "/etc/php7/php.ini" "%SNUFFLEUPAGUS_CONFIG%" "sp.configuration_file=/etc/php7/conf.d/snuffleupagus.rules"
+		replace_in_file "$PHP_INI_CONF" "%SNUFFLEUPAGUS_CONFIG%" "sp.configuration_file=${PHP_INI_DIR}/snuffleupagus.rules"
 	fi
 else
-	replace_in_file "/etc/php7/php.ini" "%SNUFFLEUPAGUS_EXTENSION%" ""
-	replace_in_file "/etc/php7/php.ini" "%SNUFFLEUPAGUS_CONFIG%" ""
+	replace_in_file "$PHP_INI_CONF" "%SNUFFLEUPAGUS_EXTENSION%" ""
+	replace_in_file "$PHP_INI_CONF" "%SNUFFLEUPAGUS_CONFIG%" ""
 fi
 
 # start syslogd
@@ -115,9 +130,7 @@ echo "0 0 * * * logrotate -f /etc/logrotate.conf > /dev/null 2>&1" >> /etc/cront
 crond
 
 # start PHP
-replace_in_file "/etc/php7/php-fpm.d/www.conf" "user = nobody" "user = php"
-replace_in_file "/etc/php7/php-fpm.d/www.conf" "group = nobody" "group = php"
-PHP_INI_SCAN_DIR=:/php.d/ php-fpm7
+PHP_INI_SCAN_DIR=:/php.d/:/usr/local/etc/php/conf.d/ php-fpm
 if [ ! -f "/var/log/php-fpm.log" ] ; then
 	touch /var/log/php-fpm.log
 fi
