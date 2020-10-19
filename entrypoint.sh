@@ -66,7 +66,7 @@ USE_SNUFFLEUPAGUS="{USE_SNUFFLEUPAGUS-yes}"
 LOGROTATE_MINSIZE="${LOGROTATE_MINSIZE-10M}"
 LOGROTATE_MAXAGE="${LOGROTATE_MAXAGE-7}"
 
-# install additional packages if needed
+# install some additional packages if needed
 if [ "$APK_ADD" != "" ] ; then
 	apk add $APK_ADD
 fi
@@ -77,13 +77,13 @@ if [ "$PECL_INSTALL" != "" ] ; then
 fi
 
 # enable some extensions if needed
-if [ "$PHP_EXT_ENABLE" ] ; then
+if [ "$PHP_EXT_ENABLE" != "" ] ; then
 	docker-php-ext-enable $PHP_EXT_ENABLE
 fi
 
 # install some extensions if needed
-if [ "$PHP_EXT_INSTALL" ] ; then
-	docker-php-ext-install $PHP_EXT_ENABLE
+if [ "$PHP_EXT_INSTALL" != "" ] ; then
+	docker-php-ext-install $PHP_EXT_INSTALL
 fi
 
 # replace values
