@@ -1,4 +1,4 @@
-FROM php:fpm-alpine
+FROM i386/php:fpm-alpine
 
 RUN rm -f /usr/local/etc/php-fpm.d/*docker.conf
 
