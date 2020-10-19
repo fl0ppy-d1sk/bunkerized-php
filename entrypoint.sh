@@ -27,6 +27,9 @@ function replace_in_file() {
 	sed -i "s/$pattern/$replace/g" "$1"
 }
 
+# replace default values
+replace_in_file "/usr/local/etc/php-fpm.d/www.conf" "127.0.0.1:9000" "0.0.0.0:9000"
+
 # file paths
 PHP_INI_CONF="/usr/local/etc/php/php.ini"
 PHP_INI_DIR="/usr/local/etc/php/conf.d"
@@ -76,6 +79,11 @@ fi
 # enable some extensions if needed
 if [ "$PHP_EXT_ENABLE" ] ; then
 	docker-php-ext-enable $PHP_EXT_ENABLE
+fi
+
+# install some extensions if needed
+if [ "$PHP_EXT_INSTALL" ] ; then
+	docker-php-ext-install $PHP_EXT_ENABLE
 fi
 
 # replace values
