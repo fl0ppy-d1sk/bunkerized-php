@@ -47,16 +47,28 @@ docker run --network mynet -v /path/to/web/files:/www -e PHP_FILE_UPLOADS=1 -e P
 ```
 
 For security reasons, file uploads are disabled by default. Here are the explanations of the environment variables :
-- PHP_FILE_UPLOADS : enables (*1*) or disables (*0*) file uploads (default : *0*)
-- PHP_UPLOAD_MAX_FILESIZE : maximum size of an uploaded file (default : *10M*)
-- PHP_POST_MAX_SIZE : maximum size of the whole POST data (default : *10M*)
+- `PHP_FILE_UPLOADS` : enable (*1*) or disable (*0*) file uploads (default : *0*)
+- `PHP_UPLOAD_MAX_FILESIZE` : maximum size of an uploaded file (default : *10M*)
+- `PHP_POST_MAX_SIZE` : maximum size of the whole POST data (default : *10M*)
 
 ## Install additional extensions
 
-Use the `PHP_EXT_INSTALL` environment variable to install some extensions to the *docker-php-ext-install* script :
+You can easily add extensions using the following environment variables :
+- `APK_ADD` : add additional alpine packages (*apk add*)
+- `PECL_INSTALL` : add additional PECL extensions (*pecl install*)
+- `PHP_EXT_ENABLE` : enable previously added PECL extensions (*docker-php-ext-enable*)
+- `PHP_EXT_INSTALL` : install PHP core extensions (*docker-php-ext-install*)
+
+Simple example to add MySQL extensions :
 
 ```
 docker run --network mynet -v /path/to/web/files:/www -e PHP_EXT_INSTALL="mysqli pdo pdo_mysql" bunkerity/bunkerized-php
+```
+
+Another example to add imagick extension :
+
+```
+docker run --network mynet -v /path/to/web/files:/www -e APK_ADD="autoconf gcc musl-dev make imagemagick-dev" -e PECL_INSTALL=imagick -e PHP_EXT_ENABLE=imagick bunkerity/bunkerized-php
 ```
 
 # Environment variables

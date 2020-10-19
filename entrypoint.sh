@@ -27,6 +27,26 @@ function replace_in_file() {
 	sed -i "s/$pattern/$replace/g" "$1"
 }
 
+# install some additional packages if needed
+if [ "$APK_ADD" != "" ] ; then
+	apk add $APK_ADD
+fi
+
+# install some PECL packages if needed
+if [ "$PECL_INSTALL" != "" ] ; then
+	pecl install $PECL_INSTALL
+fi
+
+# enable some extensions if needed
+if [ "$PHP_EXT_ENABLE" != "" ] ; then
+	docker-php-ext-enable $PHP_EXT_ENABLE
+fi
+
+# install some extensions if needed
+if [ "$PHP_EXT_INSTALL" != "" ] ; then
+	docker-php-ext-install $PHP_EXT_INSTALL
+fi
+
 # replace default values
 replace_in_file "/usr/local/etc/php-fpm.d/www.conf" "127.0.0.1:9000" "0.0.0.0:9000"
 
@@ -65,26 +85,6 @@ PHP_MEMORY_LIMIT="${PHP_MEMORY_LIMIT-128M}"
 USE_SNUFFLEUPAGUS="{USE_SNUFFLEUPAGUS-yes}"
 LOGROTATE_MINSIZE="${LOGROTATE_MINSIZE-10M}"
 LOGROTATE_MAXAGE="${LOGROTATE_MAXAGE-7}"
-
-# install some additional packages if needed
-if [ "$APK_ADD" != "" ] ; then
-	apk add $APK_ADD
-fi
-
-# install some PECL packages if needed
-if [ "$PECL_INSTALL" != "" ] ; then
-	pecl install $PECL_INSTALL
-fi
-
-# enable some extensions if needed
-if [ "$PHP_EXT_ENABLE" != "" ] ; then
-	docker-php-ext-enable $PHP_EXT_ENABLE
-fi
-
-# install some extensions if needed
-if [ "$PHP_EXT_INSTALL" != "" ] ; then
-	docker-php-ext-install $PHP_EXT_INSTALL
-fi
 
 # replace values
 replace_in_file "$PHP_INI_CONF" "%PHP_EXPOSE%" "$PHP_EXPOSE"
